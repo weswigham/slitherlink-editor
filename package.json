@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "node build.js watch",
-    "build": "node build.js"
+    "build": "node build.js",
+    "precommit": "node build.js && git add ./dist -f"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
   "homepage": "https://github.com/weswigham/slitherlink-editor#readme",
   "devDependencies": {
     "browserify": "^14.1.0",
+    "git-pre-commit": "^2.1.3",
     "solved": "*",
     "tsify": "^3.0.1",
     "typescript": "^2.2.1",
