@@ -2,17 +2,82 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const solved = require("solved");
-function element(id) {
-    return document.getElementById(id);
-}
+const functions_1 = require("./util/functions");
+const rendering_1 = require("./util/rendering");
 const worker = new Worker("./dist/worker.js");
+const p = functions_1.curry(rendering_1.mkelement, "p");
+const a = functions_1.curry(rendering_1.mkelement, "a");
+const div = functions_1.curry(rendering_1.mkelement, "div");
+const b = functions_1.curry(rendering_1.mkelement, "b");
 window.onload = () => {
-    element("main").innerHTML = `<p>Test - Slitherlink strategies available: ${solved.Slitherlink.Strategies.all().map(s => s.name).join(",")}</p>`;
+    rendering_1.render("main", p(() => rendering_1.html `Test - ${b(() => `Slitherlink`)} strategies available: ${solved.Slitherlink.Strategies.all().map(s => s.name).join(",")}`));
     worker.postMessage({ test: "A message" });
     console.log("Sent message to worker!");
 };
 
-},{"solved":2}],2:[function(require,module,exports){
+},{"./util/functions":2,"./util/rendering":3,"solved":4}],2:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function curry(f, arg) {
+    return (...args) => f(arg, ...args);
+}
+exports.curry = curry;
+
+},{}],3:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function findElem(id) {
+    return document.getElementById(id);
+}
+exports.findElem = findElem;
+function mkelement(kind, propsOrBody, body) {
+    const elem = document.createElement(kind);
+    if (!propsOrBody)
+        return elem;
+    if (typeof propsOrBody !== "function") {
+        for (const [key, value] of Object.keys(propsOrBody).map(p => [p, propsOrBody[p]])) {
+            elem.setAttribute(key, value);
+        }
+    }
+    else {
+        body = propsOrBody;
+    }
+    if (body) {
+        const result = body();
+        elem.innerHTML = typeof result === "string" ? result : result.outerHTML;
+    }
+    return elem;
+}
+exports.mkelement = mkelement;
+function render(id, elem) {
+    findElem(id).innerHTML = elem.outerHTML;
+}
+exports.render = render;
+function html(literals, ...placeholders) {
+    let result = "";
+    // interleave the literals with the placeholders
+    for (let i = 0; i < placeholders.length; i++) {
+        result += literals[i];
+        const p = placeholders[i];
+        if (typeof p === "string") {
+            result += p
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+        else {
+            result += p.outerHTML;
+        }
+    }
+    // add the last literal
+    result += literals[literals.length - 1];
+    return result;
+}
+exports.html = html;
+
+},{}],4:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -20,7 +85,7 @@ function __export(m) {
 Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./puzzles"));
 
-},{"./puzzles":3}],3:[function(require,module,exports){
+},{"./puzzles":5}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const RainRadar = require("./rainradar");
@@ -28,7 +93,7 @@ exports.RainRadar = RainRadar;
 const Slitherlink = require("./slitherlink");
 exports.Slitherlink = Slitherlink;
 
-},{"./rainradar":4,"./slitherlink":5}],4:[function(require,module,exports){
+},{"./rainradar":6,"./slitherlink":7}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const solver_1 = require("../solver");
@@ -125,7 +190,7 @@ class Solver extends solver_1.AbstractSolver {
 }
 exports.Solver = Solver;
 
-},{"../solver":6}],5:[function(require,module,exports){
+},{"../solver":8}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const solver_1 = require("../solver");
@@ -348,7 +413,7 @@ const dot = "·";
 class Solver extends solver_1.StrategicAbstractSolver {
     constructor(...strategies) {
         if (strategies.length === 0) {
-            super(...Strategies.all());
+            super(...Strategies.all().map(s => s.strategy));
         }
         else {
             super(...strategies);
@@ -464,7 +529,7 @@ var Strategies;
      * Add a strategy to the list of all strategies which are automatically used and attach the function's name as the strategy name
      */
     function register(strat) {
-        _all.push(solver_1.strategy(strat));
+        _all.push({ strategy: solver_1.strategy(strat), name: strat.name });
         return strat;
     }
     Strategies.register = register;
@@ -1137,7 +1202,7 @@ function newState(input) {
 }
 exports.newState = newState;
 
-},{"../solver":6,"../util":7}],6:[function(require,module,exports){
+},{"../solver":8,"../util":9}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class AbstractSolver {
@@ -1197,7 +1262,7 @@ class StrategicAbstractSolver extends AbstractSolver {
 }
 exports.StrategicAbstractSolver = StrategicAbstractSolver;
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function Enum(...x) {
