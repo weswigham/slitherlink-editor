@@ -2,12 +2,27 @@ export function findElem(id: string) {
     return document.getElementById(id);
 }
 
-export function mkelement(kind: string, propsOrBody?: {[name: string]: string} | ((() => HTMLElement | string) | string), body?: (() => HTMLElement | string) | string) {
+let handlerid = 0;
+let handlers: {[index: number]: (value: Event, elem?: HTMLElement) => void} = {};
+
+(window as any)._eventFired = (object: HTMLElement, event: Event, handlerid: number) => {
+    if (!handlers[handlerid]) return;
+    handlers[handlerid](event, object);
+};
+
+export function mkelement(kind: string, propsOrBody?: {[name: string]: string | number | ((value: Event, elem?: HTMLElement) => void)} | ((() => HTMLElement | string) | string), body?: (() => HTMLElement | string) | string) {
     const elem = document.createElement(kind);
     if (!propsOrBody) return elem;
     if (typeof propsOrBody !== "function" && typeof propsOrBody !== "string") {
-        for (const [key, value] of Object.keys(propsOrBody).map(p => [p, propsOrBody[p]])) {
-            elem.setAttribute(key, value);
+        for (const [key, value] of Object.keys(propsOrBody).map(p => [p, propsOrBody[p]]) as [string, string | number | ((value: Event, elem?: HTMLElement) => void)][]) {
+            if (typeof value === "function") {
+                handlerid++;
+                handlers[handlerid] = value;
+                elem.setAttribute(key, `_eventFired(this, event, ${handlerid})`);
+            }
+            else {
+                elem.setAttribute(key, ""+value);
+            }
         }
     }
     else {
@@ -29,7 +44,7 @@ export function render(id: string, elem: HTMLElement) {
     findElem(id).innerHTML = elem.outerHTML;
 }
 
-export function html(literals: TemplateStringsArray, ...placeholders: (string | HTMLElement)[]) {
+export function html(literals: TemplateStringsArray, ...placeholders: (string | HTMLElement | (string | HTMLElement)[])[]) {
     let result = "";
 
     // interleave the literals with the placeholders
@@ -45,7 +60,12 @@ export function html(literals: TemplateStringsArray, ...placeholders: (string | 
                 .replace(/>/g, '&gt;');
         }
         else {
-            result += p.outerHTML;
+            if (p instanceof Array) {
+                result += p.map(p => typeof p === "string" ? p : p.outerHTML).join("");
+            }
+            else {
+                result += p.outerHTML;
+            }
         }
     }
 
