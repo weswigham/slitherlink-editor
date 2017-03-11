@@ -10,8 +10,9 @@ const a = functions_1.curry(rendering_1.mkelement, "a");
 const div = functions_1.curry(rendering_1.mkelement, "div");
 const b = functions_1.curry(rendering_1.mkelement, "b");
 window.onload = () => {
-    rendering_1.render("main", p(() => rendering_1.html `Test - ${b(() => `Slitherlink`)} strategies available: ${solved.Slitherlink.Strategies.all().map(s => s.name).join(",")}`));
-    worker.postMessage({ test: "A message" });
+    rendering_1.render("main", p(() => rendering_1.html `Test - ${b(`Slitherlink`)} strategies available: ${solved.Slitherlink.Strategies.all().map(s => s.name).join(",")}`));
+    const m1 = { test: "A message", type: "test" };
+    worker.postMessage(m1);
     console.log("Sent message to worker!");
 };
 
@@ -34,7 +35,7 @@ function mkelement(kind, propsOrBody, body) {
     const elem = document.createElement(kind);
     if (!propsOrBody)
         return elem;
-    if (typeof propsOrBody !== "function") {
+    if (typeof propsOrBody !== "function" && typeof propsOrBody !== "string") {
         for (const [key, value] of Object.keys(propsOrBody).map(p => [p, propsOrBody[p]])) {
             elem.setAttribute(key, value);
         }
@@ -43,8 +44,13 @@ function mkelement(kind, propsOrBody, body) {
         body = propsOrBody;
     }
     if (body) {
-        const result = body();
-        elem.innerHTML = typeof result === "string" ? result : result.outerHTML;
+        if (typeof body === "function") {
+            const result = body();
+            elem.innerHTML = typeof result === "string" ? result : result.outerHTML;
+        }
+        else {
+            elem.innerHTML = body;
+        }
     }
     return elem;
 }

@@ -2,10 +2,10 @@ export function findElem(id: string) {
     return document.getElementById(id);
 }
 
-export function mkelement(kind: string, propsOrBody?: {[name: string]: string} | (() => HTMLElement | string), body?: () => HTMLElement | string) {
+export function mkelement(kind: string, propsOrBody?: {[name: string]: string} | ((() => HTMLElement | string) | string), body?: (() => HTMLElement | string) | string) {
     const elem = document.createElement(kind);
     if (!propsOrBody) return elem;
-    if (typeof propsOrBody !== "function") {
+    if (typeof propsOrBody !== "function" && typeof propsOrBody !== "string") {
         for (const [key, value] of Object.keys(propsOrBody).map(p => [p, propsOrBody[p]])) {
             elem.setAttribute(key, value);
         }
@@ -14,8 +14,13 @@ export function mkelement(kind: string, propsOrBody?: {[name: string]: string} |
         body = propsOrBody;
     }
     if (body) {
-        const result = body();
-        elem.innerHTML = typeof result === "string" ? result : result.outerHTML;
+        if (typeof body === "function") {
+            const result = body();
+            elem.innerHTML = typeof result === "string" ? result : result.outerHTML;
+        }
+        else {
+            elem.innerHTML = body;
+        }
     }
     return elem;
 }

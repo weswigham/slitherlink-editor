@@ -3,7 +3,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const solved = require("solved");
 self.onmessage = (msg) => {
-    console.log(`Recieved message: ${JSON.stringify(msg)} - Available strategies ${solved.Slitherlink.Strategies.all().map(s => s.name).join(",")}`);
+    const { data } = msg;
+    switch (data.type) {
+        case "test": {
+            console.log(`Recieved message: ${JSON.stringify(data)} - Available strategies ${solved.Slitherlink.Strategies.all().map(s => s.name).join(",")}`);
+            break;
+        }
+    }
 };
 
 },{"solved":2}],2:[function(require,module,exports){
