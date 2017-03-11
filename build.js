@@ -1,6 +1,7 @@
 var browserify = require('browserify');
 var tsify = require('tsify');
 var watchify = require('watchify');
+var fs = require('fs');
  
 var b = browserify({cache: {}, packageCache: {}})
     .add('index.ts')
