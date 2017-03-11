@@ -4,7 +4,9 @@
   "description": "Uses `solved` and some baremetal html to make it easier to author slitherlink puzzles",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "node build.js watch",
+    "build": "node build.js"
   },
   "repository": {
     "type": "git",
