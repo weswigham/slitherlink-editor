@@ -21,6 +21,9 @@ if (process.argv[2] === "watch") {
     console.log("Commencing watching...");
     b.plugin(watchify);
     b2.plugin(watchify);
+    const server = require("child_process").exec("live-server");
+    server.stderr.pipe(process.stderr);
+    server.stdout.pipe(process.stdout);
 }
 
 output();
