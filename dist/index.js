@@ -16,6 +16,8 @@ const table = functions_1.curry(rendering_1.mkelement, "table");
 const tr = functions_1.curry(rendering_1.mkelement, "tr");
 const td = functions_1.curry(rendering_1.mkelement, "td");
 const button = functions_1.curry(rendering_1.mkelement, "button");
+const form = functions_1.curry(rendering_1.mkelement, "form");
+const label = functions_1.curry(rendering_1.mkelement, "label");
 window.onload = () => {
     rendering_1.render("main", PageBody());
     const m1 = { test: "A message", type: "test" };
@@ -53,14 +55,27 @@ const CheckSymmetry = (state) => {
     }
     return Object.keys(brokenSymmetries).map(k => p(`${k} symmetry ${brokenSymmetries[k] ? "❌" : "✔️️"}`));
 };
-const PageBody = (state = { x: 10, y: 10, elements: Array(10).fill(0).map(_ => Array(10).fill(0).map(_ => ({ value: " " }))) }) => div(rendering_1.html `
+function generatePuzzles(state) {
+    state.pendingOperation = "Generating puzzles...";
+    // TODO: Message worker and have it solve puzzles.
+}
+const GeneratePuzzle = (state) => form(rendering_1.html `
+    ${label({ for: "option_count" }, "Maximum Displayed Options:")}
+    ${input({ id: "option_count", type: "number", min: 0, max: 20, value: state.toGenerate })}
+    ${button({ onclick: (e, elem) => {
+        state.toGenerate = functions_1.clamp(+rendering_1.findElem("option_count").value, 0, 20);
+        generatePuzzles(state);
+    } }, "Generate!")}
+`);
+const DisplayPuzzle = (puzzle) => p("WIP");
+const PageBody = (state = { x: 10, y: 10, toGenerate: 5, solvedPuzzles: [], elements: Array(10).fill(0).map(_ => Array(10).fill(0).map(_ => ({ value: " " }))) }) => div(rendering_1.html `
     ${h1(rendering_1.html `Slitherlink - ${small(`A puzzle creation aid`)}`)}
     columns: ${input({ id: "x", type: "number", min: 3, max: 40, value: state.x, oninput: (_, elem) => {
-        state.x = +elem.value;
+        state.x = functions_1.clamp(+elem.value, 3, 40);
         rendering_1.render("main", PageBody(state));
     } })}
     rows: ${input({ id: "y", type: "number", min: 3, max: 40, value: state.y, oninput: (_, elem) => {
-        state.y = +elem.value;
+        state.y = functions_1.clamp(+elem.value, 3, 40);
         rendering_1.render("main", PageBody(state));
     } })}
 
@@ -75,6 +90,9 @@ const PageBody = (state = { x: 10, y: 10, elements: Array(10).fill(0).map(_ => A
     `)}
 
     ${CheckSymmetry(state)}
+    ${GeneratePuzzle(state)}
+    ${state.pendingOperation ? p(state.pendingOperation) : ""}
+    ${state.solvedPuzzles.map(p => DisplayPuzzle(p))}
 `);
 
 },{"./util/functions":2,"./util/rendering":3}],2:[function(require,module,exports){
@@ -84,6 +102,11 @@ function curry(f, arg) {
     return (...args) => f(arg, ...args);
 }
 exports.curry = curry;
+function clamp(input, min, max) {
+    return Math.min(Math.max(input, min), max);
+}
+exports.clamp = clamp;
+;
 
 },{}],3:[function(require,module,exports){
 "use strict";

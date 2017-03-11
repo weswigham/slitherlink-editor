@@ -8,3 +8,7 @@ export function curry<T1, R>(f: (a: T1) => R, arg: T1): () => R;
 export function curry<T1, R>(f: (a: T1, ...whatever: any[]) => R, arg: T1): (...whatever: any[]) => R {
     return (...args: any[]) => f(arg, ...args);
 }
+
+export function clamp(input: number, min: number, max: number) {
+  return Math.min(Math.max(input, min), max);
+};

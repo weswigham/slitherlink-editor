@@ -1,6 +1,6 @@
 import solved = require("solved");
-import { curry } from "./util/functions";
-import { mkelement, render, html } from "./util/rendering";
+import { curry, clamp } from "./util/functions";
+import { mkelement, render, html, findElem } from "./util/rendering";
 import { TestMessage, AllMessages } from "./messaging/messages";
 
 const worker = new Worker("./dist/worker.js");
@@ -17,6 +17,8 @@ const table = curry(mkelement, "table");
 const tr = curry(mkelement, "tr");
 const td = curry(mkelement, "td");
 const button = curry(mkelement, "button");
+const form = curry(mkelement, "form");
+const label = curry(mkelement, "label");
 
 window.onload = () => {
     render("main", PageBody());
@@ -29,7 +31,10 @@ type GridState = " " | "X" | "1" | "2" | "3";
 interface OneTrueState {
     x: number;
     y: number;
-    elements: {value: GridState}[][]
+    elements: {value: GridState}[][];
+    toGenerate: number;
+    pendingOperation?: string;
+    solvedPuzzles: solved.Slitherlink.State[];
 }
 
 const gridStateMembers: GridState[] = [" ", "X", "1", "2", "3"];
@@ -66,14 +71,30 @@ const CheckSymmetry = (state: OneTrueState) => {
     return Object.keys(brokenSymmetries).map(k => p(`${k} symmetry ${(brokenSymmetries as any)[k] ? "❌" : "✔️️"}`));
 }
 
-const PageBody = (state: OneTrueState = {x: 10, y: 10, elements: Array(10).fill(0).map(_ => Array(10).fill(0).map(_ => ({value: " "}))) as ({value: GridState})[][]}) => div(html`
+function generatePuzzles(state: OneTrueState) {
+    state.pendingOperation = "Generating puzzles...";
+    // TODO: Message worker and have it solve puzzles.
+}
+
+const GeneratePuzzle = (state: OneTrueState) => form(html`
+    ${label({for: "option_count"}, "Maximum Displayed Options:")}
+    ${input({id: "option_count", type: "number", min: 0, max: 20, value: state.toGenerate})}
+    ${button({onclick: (e: any, elem: HTMLElement) => {
+        state.toGenerate = clamp(+(findElem("option_count") as HTMLInputElement).value, 0, 20);
+        generatePuzzles(state);
+    }}, "Generate!")}
+`);
+
+const DisplayPuzzle = (puzzle: solved.Slitherlink.State) => p("WIP");
+
+const PageBody = (state: OneTrueState = {x: 10, y: 10, toGenerate: 5, solvedPuzzles: [], elements: Array(10).fill(0).map(_ => Array(10).fill(0).map(_ => ({value: " "}))) as ({value: GridState})[][]}) => div(html`
     ${h1(html`Slitherlink - ${small(`A puzzle creation aid`)}`)}
     columns: ${input({id: "x", type: "number", min: 3, max: 40, value: state.x, oninput: (_: any, elem: HTMLInputElement) => {
-        state.x = +elem.value;
+        state.x = clamp(+elem.value, 3, 40);
         render("main", PageBody(state));
     }})}
     rows: ${input({id: "y", type: "number", min: 3, max: 40, value: state.y, oninput: (_: any, elem: HTMLInputElement) => {
-        state.y = +elem.value;
+        state.y = clamp(+elem.value, 3, 40);
         render("main", PageBody(state));
     }})}
 
@@ -88,4 +109,7 @@ const PageBody = (state: OneTrueState = {x: 10, y: 10, elements: Array(10).fill(
     `)}
 
     ${CheckSymmetry(state)}
+    ${GeneratePuzzle(state)}
+    ${state.pendingOperation ? p(state.pendingOperation) : ""}
+    ${state.solvedPuzzles.map(p => DisplayPuzzle(p))}
 `);
