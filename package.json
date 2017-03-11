@@ -1,0 +1,28 @@
+{
+  "name": "slitherlink-editor",
+  "version": "0.0.1",
+  "description": "Uses `solved` and some baremetal html to make it easier to author slitherlink puzzles",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weswigham/slitherlink-editor.git"
+  },
+  "keywords": [
+    "slitherlink"
+  ],
+  "author": "Wesley Wigham (weswigham)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/weswigham/slitherlink-editor/issues"
+  },
+  "homepage": "https://github.com/weswigham/slitherlink-editor#readme",
+  "devDependencies": {
+    "browserify": "^14.1.0",
+    "solved": "*",
+    "tsify": "^3.0.1",
+    "typescript": "^2.2.1"
+  }
+}
