@@ -10,10 +10,10 @@ let handlers: {[index: number]: (value: Event, elem?: HTMLElement) => void} = {}
     handlers[handlerid](event, object);
 };
 
-export function mkelement(kind: string, propsOrBody?: {[name: string]: string | number | ((value: Event, elem?: HTMLElement) => void)} | ((() => HTMLElement | string) | string), body?: (() => HTMLElement | string) | string) {
+export function mkelement(kind: string, propsOrBody?: {[name: string]: string | number | ((value: Event, elem?: HTMLElement) => void)} | ((() => HTMLElement | string) | string | HTMLElement), body?: (() => HTMLElement | string) | string | HTMLElement) {
     const elem = document.createElement(kind);
     if (!propsOrBody) return elem;
-    if (typeof propsOrBody !== "function" && typeof propsOrBody !== "string") {
+    if (typeof propsOrBody !== "function" && typeof propsOrBody !== "string" && !(propsOrBody instanceof HTMLElement)) {
         for (const [key, value] of Object.keys(propsOrBody).map(p => [p, propsOrBody[p]]) as [string, string | number | ((value: Event, elem?: HTMLElement) => void)][]) {
             if (typeof value === "function") {
                 handlerid++;
@@ -33,15 +33,23 @@ export function mkelement(kind: string, propsOrBody?: {[name: string]: string | 
             const result = body();
             elem.innerHTML = typeof result === "string" ? result : result.outerHTML;
         }
-        else {
+        else if (typeof body === "string") {
             elem.innerHTML = body;
+        }
+        else {
+            elem.innerHTML = body.outerHTML;
         }
     }
     return elem;
 }
 
-export function render(id: string, elem: HTMLElement) {
-    findElem(id).innerHTML = elem.outerHTML;
+export function render(id: string | HTMLElement, elem: HTMLElement) {
+    if (typeof id === "string") {
+        findElem(id).innerHTML = elem.outerHTML;
+    }
+    else {
+        id.outerHTML = elem.outerHTML;
+    }
 }
 
 export function html(literals: TemplateStringsArray, ...placeholders: (string | HTMLElement | (string | HTMLElement)[])[]) {
