@@ -5,19 +5,20 @@ var fs = require('fs');
  
 var b = browserify({cache: {}, packageCache: {}})
     .add('index.ts')
-    .plugin(tsify)
+    .plugin(tsify, require("./tsconfig.json").compilerOptions)
     .on('error', function (error) { console.error(error.toString()); })
     .on('update', output)
     .on('log', function(msg) { console.log(msg) });
 
 var b2 = browserify({cache: {}, packageCache: {}})
     .add('worker.ts')
-    .plugin(tsify)
+    .plugin(tsify, require("./tsconfig.json").compilerOptions)
     .on('error', function (error) { console.error(error.toString()); })
     .on('update', outputWorker)
     .on('log', function(msg) { console.log(msg) });
 
-if (process.argv[1] === "watch") {
+if (process.argv[2] === "watch") {
+    console.log("Commencing watching...");
     b.plugin(watchify);
     b2.plugin(watchify);
 }
